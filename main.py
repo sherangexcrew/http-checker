@@ -19,7 +19,7 @@ def print_banner():
 ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝
     """
     print(Fore.GREEN + banner)
-    
+
     # Tampilkan teks di tengah terminal
     terminal_width = os.get_terminal_size().columns
     text = "SHerang Exploiter Crew"
@@ -37,24 +37,28 @@ def print_banner():
     print(Fore.WHITE + "https://sherangxcrew.com")
     print("")
     print(Fore.LIGHTBLUE_EX + "Ketik exit untuk keluar")
+
 def check_http_response(url):
     # Menambahkan http:// jika URL tidak memiliki prefix
     if not url.startswith(('http://', 'https://')):
         url = 'http://' + url
 
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=6)  # Set timeout to 15 seconds
         return response.status_code
+    except requests.exceptions.Timeout:
+        return "Tidak ada respons"  # Return message for timeout
     except requests.exceptions.ConnectionError:
         return "Domain not registered / disable"
     except requests.exceptions.RequestException as e:
         print(f"{Fore.RED}Error: {e}")
         return None
 
-def print_response(url, status_code, output_file):
+def print_response(url, status_code, good_output_file):
     result = ""
     if status_code == 200:
         result = f"{Fore.GREEN}[+] {url} > 200 OK\n"
+        good_output_file.write(url + "\n")  # Save only the URL with 200 OK
     elif status_code == 400:
         result = f"{Fore.YELLOW}[+] {url} > 400 Bad Request\n"
     elif status_code == 401:
@@ -65,13 +69,14 @@ def print_response(url, status_code, output_file):
         result = f"{Fore.LIGHTRED_EX}[+] {url} > 404 Not Found\n"
     elif status_code == 503:
         result = f"{Fore.CYAN}[+] {url} > 503 Service Unavailable\n"
+    elif status_code == "Tidak ada respons":
+        result = f"{Fore.LIGHTRED_EX}[+] {url} > Not responding..\n"
     elif status_code == "Name or service not known":
         result = f"{Fore.LIGHTBLUE_EX}[+] {url} > Name or service not known\n"
     else:
-        result = f"{Fore.WHITE}[+] {url} > {status_code} \n"
+        result = f"{Fore.WHITE}[+] {url} > {status_code} Bad status \n"
 
     print(result, end='')  # Print to console
-    output_file.write(result)  # Write to output file
 
 def main():
     clear_terminal()  # Membersihkan terminal sebelum menampilkan banner
@@ -83,21 +88,20 @@ def main():
             print("_________________________________________________________")
 
             if filename.lower() == 'exit':
-                print(f"{Fore.YELLOW}Keluar dari tools.")
-                break
+                print(f"{Fore.YELLOW}Keluar dari tools.")                                                                                            break
 
-            output_filename = f"output-{os.path.basename(filename)}"  # Membuat nama file output
-            with open(filename, 'r') as file, open(output_filename, 'w') as output_file:
+            good_output_filename = f"good_{os.path.basename(filename)}"  # Nama file untuk hasil 200 OK
+            with open(filename, 'r') as file, open(good_output_filename, 'w') as good_output_file:
                 urls = file.readlines()
-                
+
                 for url in urls:
                     url = url.strip()  # Menghapus spasi di awal dan akhir
                     if url:  # Pastikan URL tidak kosong
                         status_code = check_http_response(url)
                         if status_code is not None:
-                            print_response(url, status_code, output_file)
-                            
-            print(f"{Fore.YELLOW}Hasil telah disimpan di {output_filename}")
+                            print_response(url, status_code, good_output_file)
+
+            print(f"{Fore.YELLOW}Hasil 200 OK telah disimpan di {good_output_filename}")
             break  # Keluar dari loop jika berhasil membaca file
 
         except FileNotFoundError:
@@ -110,3 +114,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
