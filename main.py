@@ -74,7 +74,7 @@ def print_response(url, status_code, good_output_file):
     elif status_code == "Name or service not known":
         result = f"{Fore.LIGHTBLUE_EX}[+] {url} > Name or service not known\n"
     else:
-        result = f"{Fore.WHITE}[+] {url} > {status_code} Bad status \n"
+        result = f"{Fore.WHITE}[+] {url} > {status_code} \n"
 
     print(result, end='')  # Print to console
 
@@ -88,7 +88,8 @@ def main():
             print("_________________________________________________________")
 
             if filename.lower() == 'exit':
-                print(f"{Fore.YELLOW}Keluar dari tools.")                                                                                            break
+                print(f"{Fore.YELLOW}Keluar dari tools.")
+                break
 
             good_output_filename = f"good_{os.path.basename(filename)}"  # Nama file untuk hasil 200 OK
             with open(filename, 'r') as file, open(good_output_filename, 'w') as good_output_file:
@@ -114,4 +115,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
